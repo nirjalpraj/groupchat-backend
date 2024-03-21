@@ -1,10 +1,18 @@
-const express = require("express");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
+import express from "express";
+import dotenv from "dotenv";
+import { createServer } from "http";
+import { Server } from "http";
+import connectDB from "./src/db/index.js";
+
+dotenv.config({
+  path: "./",
+});
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
+
+connectDB();
 
 app.route("/").get((req, res) => {
   res.json("Testing testing");
