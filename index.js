@@ -1,8 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
 import { createServer } from "http";
-import { Server } from "http";
+import { Server } from "socket.io";
 import connectDB from "./src/db/index.js";
+import { Chat } from "./src/models/chatModel.js";
 
 dotenv.config({
   path: "./",
@@ -19,16 +20,20 @@ app.route("/").get((req, res) => {
 });
 
 io.on("connection", (socket) => {
+  console.log("connected!");
   socket.join("anomynous_group");
-  console.log("Backend connected!");
-  socket.on("sendMsg", (msg) => {
-    console.log("Here is the msg", msg);
+  socket.on("sendMsg", async (msg) => {
+    console.log("🚀 ~ socket.on ~ msg:", msg);
+
+    const Message = new Chat(msg);
+    await Message.save();
+
     io.to("anomynous_group").emit("sendMsgServer", {
       ...msg,
       type: "otherMsg",
     });
-    // socket.emit("sendMsgServer", { ...msg, type: "otherMsg" });
+    socket.emit("sendMsgServer", { ...msg, type: "otherMsg" });
   });
 });
 
-httpServer.listen(3000);
+httpServer.listen(3001);
