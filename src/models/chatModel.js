@@ -6,18 +6,16 @@ const chatSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-  },
-  {
+
     sender: {
       type: String,
       required: true,
     },
-  },
-  {
+
     type: {
       type: String,
       enum: ["ownMsg", "otherMsg"],
-      required: true,
+      required: false,
     },
   },
   { timestamps: true }

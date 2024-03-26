@@ -19,21 +19,41 @@ app.route("/").get((req, res) => {
   res.json("Testing testing");
 });
 
+let roomId = "";
+
 io.on("connection", (socket) => {
   console.log("connected!");
-  socket.join("anomynous_group");
+  // socket.join("anomynous_group");
+
+  socket.on("join", (room) => {
+    socket.join(room);
+    roomId = room;
+    console.log("🚀 ~ socket.on ~ roomId:", roomId);
+  });
+
   socket.on("sendMsg", async (msg) => {
     console.log("🚀 ~ socket.on ~ msg:", msg);
+    console.log("🚀 ~ roomId:", roomId);
+    const Message = new Chat({ msg: msg.msg, sender: msg.userId });
+    Message.save();
 
-    const Message = new Chat(msg);
-    await Message.save();
-
-    io.to("anomynous_group").emit("sendMsgServer", {
+    io.to(roomId).emit("sendMsgServer", {
       ...msg,
       type: "otherMsg",
     });
     socket.emit("sendMsgServer", { ...msg, type: "otherMsg" });
   });
+
+  Chat.find()
+    .sort("-createdAt")
+    .limit(10)
+    .then((messages) => {
+      // console.log("🚀 ~ .then ~ messages:", messages);
+      socket.emit("chat history", messages.reverse());
+    })
+    .catch((err) => {
+      console.error("Error fetching chat history:", err);
+    });
 });
 
 httpServer.listen(3001);
